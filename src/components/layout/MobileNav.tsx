@@ -1,3 +1,8 @@
+/**
+ * src/components/layout/MobileNav.tsx
+ * 
+ * Barre de navigation collée en bas de l'écran (mobile uniquement).
+ */
 'use client';
 
 import Link from 'next/link';

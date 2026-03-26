@@ -1,3 +1,9 @@
+/**
+ * src/components/layout/Header.tsx
+ * 
+ * En-tête principal de l'application (Desktop).
+ * Affiche le logo, la navigation et le bouton de connexion/profil.
+ */
 'use client';
 
 import Link from 'next/link';
@@ -9,40 +15,32 @@ export default function Header() {
   return (
     <header className="header">
       <div className="header__container">
+        {/* Logo */}
         <Link href="/" className="header__logo">
-          <span className="header__logo-icon">⚡</span>
-          <span className="header__logo-text">
-            Quick<span className="header__logo-accent">Service</span>
-          </span>
+          QuickService <span className="header__logo-ai">AI</span>
         </Link>
 
+        {/* Navigation Desktop */}
         <nav className="header__nav">
-          <Link href="/search" className="header__link">
+          <Link href="/search" className="header__nav-link">
             Rechercher
           </Link>
-          {!loading && (
-            <>
-              {user ? (
-                <>
-                  <Link href="/dashboard" className="header__link">
-                    Tableau de bord
-                  </Link>
-                  <Link href="/register-service" className="header__link header__link--cta">
-                    + Devenir Prestataire
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <Link href="/login" className="header__link">
-                    Connexion
-                  </Link>
-                  <Link href="/register" className="header__link header__link--cta">
-                    S&apos;inscrire
-                  </Link>
-                </>
-              )}
-            </>
-          )}
+          <Link href="/register-service" className="header__nav-link">
+            Devenir Prestataire
+          </Link>
+          <div className="header__nav-actions">
+            {loading ? (
+              <div className="loading-spinner" style={{ width: 24, height: 24 }} />
+            ) : user ? (
+              <Link href="/dashboard" className="btn-primary" style={{ padding: '8px 16px', fontSize: '14px' }}>
+                Mon Profil
+              </Link>
+            ) : (
+              <Link href="/login" className="btn-secondary" style={{ padding: '8px 16px', fontSize: '14px' }}>
+                Connexion
+              </Link>
+            )}
+          </div>
         </nav>
       </div>
     </header>

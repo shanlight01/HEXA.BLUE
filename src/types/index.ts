@@ -6,6 +6,10 @@ export interface ServiceProfile {
   category: ServiceCategory;
   skills: string[];
   location: string;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
   whatsapp: string;
   rating: number;
   isAvailable: boolean;
@@ -21,7 +25,7 @@ export interface User {
   phone?: string;
   isProvider: boolean;
   serviceProfile?: ServiceProfile;
-  createdAt: string;
+  createdAt?: string;
   photoURL?: string;
 }
 
@@ -42,6 +46,8 @@ export type ServiceCategory =
 export interface SearchIntent {
   service: string;
   location?: string;
+  userCoordinates?: { lat: number; lng: number };
+  searchRadiusKm?: number;
   urgency: boolean;
   category?: ServiceCategory;
   pricePreference?: 'low' | 'medium' | 'high';
@@ -50,6 +56,7 @@ export interface SearchIntent {
 export interface MatchResult {
   provider: User;
   score: number;
+  distanceKm?: number;
   breakdown: {
     ratingScore: number;
     proximityScore: number;

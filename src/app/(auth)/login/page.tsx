@@ -1,3 +1,8 @@
+/**
+ * src/app/(auth)/login/page.tsx
+ * 
+ * Page de connexion existante. Utilise Firebase Auth pour l'authentification.
+ */
 'use client';
 
 import { useState } from 'react';
@@ -33,7 +38,12 @@ export default function LoginPage() {
         <h1 className="auth-card__title">Bon retour ! 👋</h1>
         <p className="auth-card__subtitle">Connectez-vous à votre compte QuickService</p>
 
-        {error && <div className="alert alert--error">{error}</div>}
+        {error && (
+          <div className="alert alert--error">
+            <span>⚠️</span>
+            <span>{error}</span>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">

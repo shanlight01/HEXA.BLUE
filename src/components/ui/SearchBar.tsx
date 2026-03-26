@@ -1,3 +1,9 @@
+/**
+ * src/components/ui/SearchBar.tsx
+ * 
+ * Composant principal de recherche textuelle avec autocomplétion basique
+ * et suggestions de raccourcis clavier.
+ */
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -13,6 +19,7 @@ export default function SearchBar({ onSearch, loading, placeholder }: SearchBarP
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Exemples locaux pertinents pour l'intention de l'utilisateur
   const suggestions = [
     'Je cherche un plombier à Tokoin',
     'Coiffeuse urgente à Agoè',
@@ -34,6 +41,7 @@ export default function SearchBar({ onSearch, loading, placeholder }: SearchBarP
     setIsFocused(false);
   };
 
+  // Raccourci clavier "/" pour focus la recherche rapidement
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === '/' && document.activeElement !== inputRef.current) {
@@ -82,15 +90,16 @@ export default function SearchBar({ onSearch, loading, placeholder }: SearchBarP
             </button>
           )}
           <button
-            type="submit"
-            className="search-bar__submit"
-            disabled={!query.trim() || loading}
-          >
-            {loading ? 'Recherche...' : 'Chercher'}
-          </button>
+             type="submit"
+             className="search-bar__submit"
+             disabled={!query.trim() || loading}
+           >
+             {loading ? 'Recherche...' : 'Chercher'}
+           </button>
         </div>
       </form>
 
+      {/* Dropdown de suggestions */}
       {isFocused && !query && (
         <div className="search-suggestions">
           <p className="search-suggestions__title">💡 Essayez par exemple :</p>

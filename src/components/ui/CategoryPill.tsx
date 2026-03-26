@@ -1,3 +1,9 @@
+/**
+ * src/components/ui/CategoryPill.tsx
+ * 
+ * Un bouton cliquable représentant une catégorie de service.
+ * Peut être à l'état actif (sélectionné) ou inactif.
+ */
 import type { ServiceCategory, CategoryInfo } from '@/types';
 
 interface CategoryPillProps {

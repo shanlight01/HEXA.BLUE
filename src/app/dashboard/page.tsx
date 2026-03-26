@@ -1,3 +1,10 @@
+/**
+ * src/app/dashboard/page.tsx
+ * 
+ * Tableau de bord de l'utilisateur. 
+ * Permet de voir ses statistiques, et d'activer/désactiver 
+ * son profil de prestataire de service.
+ */
 'use client';
 
 import { useState } from 'react';
@@ -6,8 +13,12 @@ import { useAuth } from '@/hooks/useAuth';
 
 export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth();
+  
+  // FIX: In a real app, this should be initialized with the user's actual firestore state.
+  // We default to false for the hackathon demo unless overridden.
   const [isProvider, setIsProvider] = useState(false);
 
+  // Écran de chargement pendant la vérification Firebase
   if (authLoading) {
     return (
       <div className="page-container">
@@ -18,6 +29,7 @@ export default function DashboardPage() {
     );
   }
 
+  // Si l'utilisateur n'est pas connecté, afficher l'état vide avec bouton de connexion
   if (!user) {
     return (
       <div className="page-container">
@@ -43,7 +55,7 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {/* Stats */}
+      {/* Stats rapides */}
       <div className="dashboard-stats">
         <div className="stat-card">
           <div className="stat-card__value">0</div>
@@ -59,17 +71,17 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Provider Toggle */}
+      {/* Toggle Profil Prestataire */}
       <div className="provider-toggle">
         <div className="provider-toggle__info">
           <h3>🎯 Devenir Prestataire</h3>
-          <p>Activez votre profil prestataire pour être recommandé par l&apos;IA</p>
+          <p>Activez votre profil prestataire pour commencer à recevoir des clients par l&apos;IA</p>
         </div>
         <button
           className={`toggle-switch ${isProvider ? 'toggle-switch--active' : ''}`}
           onClick={() => {
             if (!isProvider) {
-              // Redirect to register-service form
+              // Redirection vers le formulaire complet
               window.location.href = '/register-service';
             } else {
               setIsProvider(false);
@@ -81,7 +93,7 @@ export default function DashboardPage() {
         </button>
       </div>
 
-      {/* Quick Actions */}
+      {/* Actions rapides */}
       <div style={{ display: 'grid', gap: 'var(--space-md)', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
         <Link href="/search" className="btn-secondary" style={{ textAlign: 'center' }}>
           🔍 Rechercher un service

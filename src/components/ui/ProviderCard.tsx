@@ -1,3 +1,9 @@
+/**
+ * src/components/ui/ProviderCard.tsx
+ * 
+ * Composant d'affichage détaillé pour un prestataire.
+ * Montre le score de compatibilité, la distance (si géo dispo), les compétences et les actions.
+ */
 import type { User, MatchResult } from '@/types';
 import WhatsAppButton from './WhatsAppButton';
 
@@ -6,11 +12,15 @@ interface ProviderCardProps {
 }
 
 export default function ProviderCard({ result }: ProviderCardProps) {
-  const { provider, score, breakdown } = result;
+  const { provider, score, distanceKm } = result;
   const profile = provider.serviceProfile!;
 
+  // Convertit le score en pourcentage
   const scorePercent = Math.round(score * 100);
-  const stars = '★'.repeat(Math.round(profile.rating)) + '☆'.repeat(5 - Math.round(profile.rating));
+  
+  // Génère les étoiles (exemple: 4.8 => ★★★★☆)
+  const starsCount = Math.round(profile.rating);
+  const stars = '★'.repeat(starsCount) + '☆'.repeat(5 - starsCount);
 
   return (
     <div className={`provider-card ${!profile.isAvailable ? 'provider-card--unavailable' : ''}`}>
@@ -37,16 +47,26 @@ export default function ProviderCard({ result }: ProviderCardProps) {
       </div>
 
       <div className="provider-card__details">
+        {/* Localisation et Distance */}
         <div className="provider-card__detail">
           <span className="provider-card__detail-icon">📍</span>
-          <span>{profile.location}</span>
+          <span>
+            {profile.location}
+            {distanceKm !== undefined && (
+              <span style={{ color: 'var(--color-primary)', fontWeight: 700, marginLeft: '4px' }}>
+                ({distanceKm.toFixed(1)} km)
+              </span>
+            )}
+          </span>
         </div>
+        {/* Disponibilité */}
         <div className="provider-card__detail">
           <span className="provider-card__detail-icon">
             {profile.isAvailable ? '🟢' : '🔴'}
           </span>
           <span>{profile.isAvailable ? 'Disponible' : 'Indisponible'}</span>
         </div>
+        {/* Prix */}
         {profile.priceRange && (
           <div className="provider-card__detail">
             <span className="provider-card__detail-icon">💰</span>

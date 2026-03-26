@@ -1,3 +1,9 @@
+/**
+ * src/app/layout.tsx
+ * 
+ * Layout racine de l'application Next.js (S'applique à toutes les pages).
+ * Contient les balises <html>, <body>, le Header de base et le MobileNav.
+ */
 import type { Metadata } from 'next';
 import './globals.css';
 import Header from '@/components/layout/Header';

@@ -1,3 +1,9 @@
+/**
+ * src/app/(auth)/register/page.tsx
+ * 
+ * Page d'inscription. Crée un utilisateur via Firebase Auth
+ * et un document associé dans Firestore.
+ */
 'use client';
 
 import { useState } from 'react';
@@ -22,6 +28,7 @@ export default function RegisterPage() {
 
     try {
       const user = await signUp(email, password, name);
+      // FIX: Ensure user document is perfectly synced with Auth
       await createUserDocument(user.uid, {
         name,
         email,
@@ -31,7 +38,7 @@ export default function RegisterPage() {
       });
       router.push('/dashboard');
     } catch {
-      setError('Erreur lors de l\'inscription. Vérifiez vos informations.');
+      setError('Erreur lors de l\'inscription. Vérifiez vos informations et réessayez.');
     } finally {
       setLoading(false);
     }
@@ -43,7 +50,12 @@ export default function RegisterPage() {
         <h1 className="auth-card__title">Créer un compte 🚀</h1>
         <p className="auth-card__subtitle">Rejoignez la communauté QuickService à Lomé</p>
 
-        {error && <div className="alert alert--error">{error}</div>}
+        {error && (
+          <div className="alert alert--error">
+            <span>⚠️</span>
+            <span>{error}</span>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">

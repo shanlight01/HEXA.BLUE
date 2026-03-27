@@ -17,7 +17,6 @@ export interface ServiceProfile {
   bio?: string;
   completedJobs?: number;
 }
-
 export interface User {
   uid: string;
   name: string;
@@ -27,6 +26,9 @@ export interface User {
   serviceProfile?: ServiceProfile;
   createdAt?: string;
   photoURL?: string;
+  avatarUrl?: string; // New avatar
+  location?: string; // e.g. "Agoè, Lomé"
+  providerCredentials?: { name: string; url: string }[];
 }
 
 export type ServiceCategory =

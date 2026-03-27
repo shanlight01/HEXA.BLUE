@@ -5,6 +5,8 @@ import {
   onAuthStateChanged,
   updateProfile,
   type User as FirebaseUser,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from 'firebase/auth';
 import { getFirebaseAuth, isFirebaseConfigured } from './config';
 
@@ -23,6 +25,14 @@ export async function signIn(email: string, password: string) {
   return credential.user;
 }
 
+export async function signInWithGoogle() {
+  const auth = getFirebaseAuth();
+  if (!auth) throw new Error('Firebase non configuré. Ajoutez vos clés dans .env.local');
+  const provider = new GoogleAuthProvider();
+  const result = await signInWithPopup(auth, provider);
+  return result.user;
+}
+
 export async function signOut() {
   const auth = getFirebaseAuth();
   if (!auth) return;
@@ -32,12 +42,12 @@ export async function signOut() {
 export function onAuthChange(callback: (user: FirebaseUser | null) => void) {
   if (!isFirebaseConfigured) {
     callback(null);
-    return () => {};
+    return () => { };
   }
   const auth = getFirebaseAuth();
   if (!auth) {
     callback(null);
-    return () => {};
+    return () => { };
   }
   return onAuthStateChanged(auth, callback);
 }

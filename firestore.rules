@@ -1,37 +1,11 @@
 rules_version = '2';
 
-// ----------------------------------------------------------------------------
-// Règles de sécurité Cloud Firestore pour le projet QuickService AI
-// ----------------------------------------------------------------------------
-// Ces règles déterminent qui a le droit de lire, écrire, ou modifier
-// les données dans la base de données Firestore.
-// ----------------------------------------------------------------------------
-
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Règle de base: Par défaut, tout est refusé.
     match /{document=**} {
-      allow read, write: if false;
-    }
-
-    // Collection des Utilisateurs (users)
-    match /users/{userId} {
-      
-      // La LECTURE est publique. 
-      // Pourquoi ? L'application doit pouvoir afficher les profils des prestataires 
-      // à tous les visiteurs, connectés ou non, pour le Matching.
-      allow read: if true;
-      
-      // Création et Modification autorisées UNIQUEMENT si:
-      // 1. L'utilisateur est connecté à Firebase Auth.
-      // 2. L'ID du document qu'il modifie (userId) correspond exactement 
-      //    à son propre ID d'authentification (request.auth.uid).
-      // Cela l'empêche de modifier les profils des autres.
-      allow create, update: if request.auth != null && request.auth.uid == userId;
-      
-      // La SUPPRESSION est bloquée côté clien.t
-      allow delete: if false;
+      // DANGER: Use ONLY for development
+      // This rule allows anyone with your project ID to read/write all data
+      allow read, write: if true;
     }
   }
 }

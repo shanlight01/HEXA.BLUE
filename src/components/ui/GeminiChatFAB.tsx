@@ -29,17 +29,12 @@ export default function GeminiChatFAB() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Masquer sur les pages auth
-  if (pathname.includes('/login') || pathname.includes('/register')) return null;
-
   // Scroll au bas à chaque nouveau message
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [history, open]);
 
   // Focus input à l'ouverture
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
     if (open) setTimeout(() => inputRef.current?.focus(), 100);
   }, [open]);
@@ -81,6 +76,9 @@ export default function GeminiChatFAB() {
       sendMessage();
     }
   };
+
+  // Masquer sur les pages auth
+  if (pathname.includes('/login') || pathname.includes('/register')) return null;
 
   return (
     <>

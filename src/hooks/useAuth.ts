@@ -1,17 +1,16 @@
 /**
  * src/hooks/useAuth.ts
  * 
- * Hook React personnalisé pour écouter l'état de connexion de l'utilisateur.
- * Ce hook gère également le "Mode Demo" si Firebase n'est pas configuré
- * pour permettre à l'application de tourner localement sans crash.
+ * Hook React personnalisé pour surveiller l'état de connexion de l'utilisateur en temps réel.
+ * Ce hook utilise Firebase Authentication pour savoir si un utilisateur est connecté ou non.
  */
 import { useState, useEffect } from 'react';
 import { User } from 'firebase/auth';
-import { getFirebaseAuth } from '@/lib/firebase/config';
+import { auth, isFirebaseConfigured } from '@/lib/firebase/config';
 
 interface AuthState {
-  user: User | null;
-  loading: boolean;
+  user: User | null;    // L'objet utilisateur de Firebase (si connecté)
+  loading: boolean;     // Indique si la vérification est en cours
 }
 
 export function useAuth() {
@@ -21,21 +20,19 @@ export function useAuth() {
   });
 
   useEffect(() => {
-    const auth = getFirebaseAuth();
-    
-    // Mode démo : si `auth` est null, Firebase n'est pas initialisé (ex: variables d'env manquantes)
-    // On simule qu'aucun utilisateur n'est connecté au lieu de faire planter l'application.
-    if (!auth) {
-      console.warn("Mode Démo activé : Firebase n'est pas configuré.");
+    // Si Firebase n'est pas configuré, on arrête tout de suite pour éviter les erreurs.
+    if (!isFirebaseConfigured || !auth) {
       setState({ user: null, loading: false });
       return;
     }
 
-    // Écoute les changements d'état (connexion / déconnexion)
+    // Écoute les changements d'état (Connexion / Déconnexion).
+    // Cette fonction est appelée automatiquement par Firebase.
     const unsubscribe = auth.onAuthStateChanged((user) => {
       setState({ user, loading: false });
     });
 
+    // Nettoyage de l'écouteur quand le composant est détruit.
     return () => unsubscribe();
   }, []);
 

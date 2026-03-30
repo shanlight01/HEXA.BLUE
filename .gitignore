@@ -1,4 +1,9 @@
-# dependencies
+# === FICHIER .GITIGNORE ===
+# Ce fichier indique à Git quels fichiers ou dossiers il ne doit PAS suivre (ignorer).
+# Cela permet d'éviter d'envoyer des fichiers inutiles ou sensibles sur le dépôt.
+
+# Dépendances (les bibliothèques installées via npm)
+# On ne les envoie jamais car elles sont reconstruites avec 'npm install'.
 /node_modules
 /.pnp
 .pnp.*
@@ -8,32 +13,33 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
+# Résultats de tests
 /coverage
 
-# next.js
+# Dossiers de travail de Next.js (générés automatiquement lors du développement ou du build)
 /.next/
 /out/
 
-# production
+# Dossier de production (le résultat final du site prêt à être déployé)
 /build
 
-# misc
+# Fichiers divers (système d'exploitation ou clés de sécurité)
 .DS_Store
 *.pem
 
-# debug
+# Fichiers de log (journaux d'erreurs générés par npm ou yarn)
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files
+# Fichiers de configuration locale (Variables d'environnement)
+# TRÈS IMPORTANT : On ignore .env.local car il contient vos clés secrètes (Firebase, etc.)
 .env*.local
 
-# vercel
+# Dossiers spécifiques à l'hébergeur Vercel
 .vercel
 
-# typescript
+# Informations de build TypeScript
 *.tsbuildinfo
 next-env.d.ts

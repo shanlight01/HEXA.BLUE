@@ -1,34 +1,41 @@
 // ============================================
-// QuickService AI — Type Definitions
+// ProxiServ — Définitions des Types
 // ============================================
 
+/**
+ * Profil détaillé d'un prestataire de services.
+ */
 export interface ServiceProfile {
-  category: ServiceCategory;
-  skills: string[];
-  location: string;
-  coordinates?: {
+  category: ServiceCategory; // Métier (ex: Plomberie)
+  skills: string[];          // Liste des compétences (ex: ["Soudure", "PVC"])
+  location: string;          // Quartier (ex: "Agoè")
+  coordinates?: {            // Position GPS précise (si activée)
     lat: number;
     lng: number;
   };
-  whatsapp: string;
-  rating: number;
-  isAvailable: boolean;
-  priceRange?: 'low' | 'medium' | 'high';
-  bio?: string;
-  completedJobs?: number;
+  phone: string;             // Numéro de contact direct (WhatsApp)
+  rating: number;            // Note moyenne (0-5)
+  isAvailable: boolean;      // État actuel (Disponible / Occupé)
+  priceRange?: 'low' | 'medium' | 'high'; // Gamme de prix
+  bio?: string;              // Description textuelle du profil
+  completedJobs?: number;    // Nombre total de missions effectuées
 }
+
+/**
+ * Structure d'un utilisateur (Client ou Prestataire).
+ */
 export interface User {
-  uid: string;
-  name: string;
-  email: string;
-  phone?: string;
-  isProvider: boolean;
-  serviceProfile?: ServiceProfile;
-  createdAt?: string;
-  photoURL?: string;
-  avatarUrl?: string; // New avatar
-  location?: string; // e.g. "Agoè, Lomé"
-  providerCredentials?: { name: string; url: string }[];
+  uid: string;            // Identifiant unique généré par Firebase
+  name: string;           // Nom complet
+  email: string;          // Adresse email
+  phone?: string;         // Numéro de téléphone standard
+  isProvider: boolean;    // Vrai si l'utilisateur propose des services
+  serviceProfile?: ServiceProfile; // Détails du service (si isProvider est vrai)
+  createdAt?: string;     // Date de création du compte
+  photoURL?: string;      // Photo de profil
+  avatarUrl?: string;     // URL de l'avatar personnalisé
+  location?: string;      // Lieu de résidence global
+  providerCredentials?: { name: string; url: string }[]; // Diplômes ou certifications
 }
 
 export type ServiceCategory =

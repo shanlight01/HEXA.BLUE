@@ -10,8 +10,9 @@
     --space-xl: 32px;
     --space-2xl: 48px;
     --space-3xl: 64px;
+    --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
 
-    /* Custom colors from our design system */
+    /* Custom colors */
     --color-primary-light: #3b82f6;
     --color-primary: #0F3E96;
     --color-primary-dark: #1e3a8a;
@@ -23,43 +24,40 @@
     --color-surface: #F4F7F9;
     --color-surface-card: #FFFFFF;
 
+    /* Gemini gradient */
+    --color-gemini-start: #6366f1;
+    --color-gemini-end: #8b5cf6;
+
     /* Animations */
     --animate-gradient-glow: gradient-glow 3s ease infinite;
-    --animate-typewriter: typewriter 2s steps(40, end);
-    --animate-blink: blink .75s step-end infinite;
+    --animate-gradient-border: gradient-border 3s linear infinite;
+    --animate-fade-up: fade-up 0.25s ease-out both;
+    --animate-skeleton: skeleton-pulse 1.5s ease-in-out infinite;
 
     @keyframes gradient-glow {
-
-        0%,
-        100% {
-            background-position: 0% 50%
-        }
-
-        50% {
-            background-position: 100% 50%
-        }
+        0%, 100% { background-position: 0% 50% }
+        50%       { background-position: 100% 50% }
     }
 
-    @keyframes typewriter {
-        from {
-            width: 0
-        }
-
-        to {
-            width: 100%
-        }
+    @keyframes gradient-border {
+        0%   { background-position: 0% 50% }
+        50%  { background-position: 100% 50% }
+        100% { background-position: 0% 50% }
     }
 
-    @keyframes blink {
+    @keyframes fade-up {
+        from { opacity: 0; transform: translateY(12px) }
+        to   { opacity: 1; transform: translateY(0) }
+    }
 
-        from,
-        to {
-            border-color: transparent
-        }
+    @keyframes skeleton-pulse {
+        0%, 100% { opacity: 1 }
+        50%       { opacity: 0.4 }
+    }
 
-        50% {
-            border-color: currentColor
-        }
+    @keyframes spin-slow {
+        from { transform: rotate(0deg) }
+        to   { transform: rotate(360deg) }
     }
 }
 
@@ -72,9 +70,53 @@
     text-wrap: balance;
 }
 
-/* Base custom styles to retain structure where Tailwind isn't fully applied yet */
+/* Base custom styles */
 .page-container {
     max-width: 1200px;
     margin: 0 auto;
     padding: var(--space-xl) var(--space-md);
+}
+
+/* ── Animated gradient border for SearchBar ─────────────────────────── */
+.search-gradient-border {
+    position: relative;
+    border-radius: 1rem;
+    padding: 2px;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6, #3b82f6, #6366f1);
+    background-size: 300% 300%;
+    animation: gradient-border 3s linear infinite;
+    box-shadow: 0 0 24px 0 rgba(99,102,241,0.18);
+}
+
+.search-gradient-border-inner {
+    background: #fff;
+    border-radius: calc(1rem - 2px);
+    padding: 0;
+}
+
+/* ── Skeleton loader ─────────────────────────────────────────────────── */
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-pulse 1.5s ease-in-out infinite;
+    border-radius: 0.75rem;
+}
+
+/* ── Chat popup ──────────────────────────────────────────────────────── */
+.chat-popup {
+    animation: fade-up 0.25s ease-out both;
+}
+
+/* ── Provider card hover ─────────────────────────────────────────────── */
+.provider-card {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.provider-card:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 20px 40px -12px rgba(15,62,150,0.15);
+}
+
+/* ── Gemini FAB spin glow ──────────────────────────────────────────── */
+.gemini-glow {
+    box-shadow: 0 8px 32px 0 rgba(99,102,241,0.45);
 }

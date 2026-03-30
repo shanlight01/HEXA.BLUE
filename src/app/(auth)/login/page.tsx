@@ -23,8 +23,12 @@ export default function LoginPage() {
     try {
       await signIn(email, password);
       router.push('/profile');
-    } catch {
-      setError('Invalid email or password. Please try again.');
+    } catch (err: any) {
+      if (err.code === 'auth/configuration-not-found') {
+        setError("L'authentification par e-mail n'est pas activée. Veuillez l'activer dans la console Firebase (Authentification > Sign-in method).");
+      } else {
+        setError('Email ou mot de passe invalide. Veuillez réessayer.');
+      }
     } finally {
       setLoading(false);
     }

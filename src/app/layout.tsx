@@ -10,14 +10,9 @@ import './globals.css';
 
 import Header from '@/components/layout/Header';
 import MobileNav from '@/components/layout/MobileNav';
-import WhatsAppFAB from '@/components/ui/WhatsAppFAB';
-import { db } from '@/config/firebase';
+import GeminiChatFAB from '@/components/ui/GeminiChatFAB';
 
-if (typeof window !== 'undefined') {
-  console.log('✅ Firebase initialisé avec succès');
-}
-
-const jakarta = Plus_Jakarta_Sans({ 
+const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
   variable: '--font-jakarta',
 });
@@ -40,7 +35,7 @@ export default function RootLayout({
         <Header />
         <main>{children}</main>
         <MobileNav />
-        <WhatsAppFAB />
+        <GeminiChatFAB />
       </body>
     </html>
   );

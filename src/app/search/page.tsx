@@ -7,11 +7,16 @@
  */
 'use client';
 
+// Imports des hooks React et Next.js
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+
+// Imports des composants UI nécessaires
 import SearchBar from '@/components/ui/SearchBar';
 import ProviderCard from '@/components/ui/ProviderCard';
 import CategoryPill from '@/components/ui/CategoryPill';
+
+// Imports des outils de données (Firestore, Algorithme de Matching, Géolocalisation)
 import { useProviders } from '@/hooks/useProviders';
 import { useMatching } from '@/hooks/useMatching';
 import { CATEGORIES, type SearchIntent, type ServiceCategory, LOME_NEIGHBORHOODS } from '@/types';
@@ -19,39 +24,44 @@ import { useGeolocation } from '@/hooks/useGeolocation';
 
 function SearchContent() {
   const searchParams = useSearchParams();
-  const initialQuery = searchParams.get('q') || '';
+  const initialQuery = searchParams.get('q') || ''; // Requête initiale depuis l'URL
   const initialLat = searchParams.get('lat');
   const initialLng = searchParams.get('lng');
 
   const [query, setQuery] = useState(initialQuery);
-  const [intent, setIntent] = useState<SearchIntent | null>(null);
+  const [intent, setIntent] = useState<SearchIntent | null>(null); // Intention détectée par l'IA
   const [loading, setLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<ServiceCategory | null>(null);
-  const [searchRadius, setSearchRadius] = useState<number>(5); // Default 5km
+  const [searchRadius, setSearchRadius] = useState<number>(5); // Rayon de recherche (par défaut 5km)
   
-  // Utilisation du hook GPS
+  // Utilisation du hook GPS pour localiser l'utilisateur
   const { coordinates, requestLocation, error: geoError } = useGeolocation();
   
-  // Live data fetch
+  // Récupération en direct des prestataires depuis Firestore
   const { providers, loading: providersLoading } = useProviders();
 
-  // On initialise les coords de l'intent avec l'URL ou le state
+  // On initialise les coordonnées à partir du GPS ou de l'URL
   const activeCoordinates = coordinates || (initialLat && initialLng ? { lat: Number(initialLat), lng: Number(initialLng) } : undefined);
 
-  // FIX: useMatching memoization handles recalculation smoothly when radius/coordinates change
+  // Prépare l'intention de recherche avec la localisation actuelle
   const currentIntentWithLocation = intent ? {
     ...intent,
     userCoordinates: activeCoordinates,
-    searchRadiusKm: searchRadius === 999 ? undefined : searchRadius, // 999 is "unlimited city"
+    searchRadiusKm: searchRadius === 999 ? undefined : searchRadius, // 999 signifie "Toute la ville" (rayon illimité)
   } : null;
 
+  // Calcule les résultats correspondants
   const results = useMatching(providers, currentIntentWithLocation);
 
+  /**
+   * Appelle l'API AI pour comprendre la requête naturelle de l'utilisateur.
+   */
   const performSearch = async (searchQuery: string) => {
     setLoading(true);
     setQuery(searchQuery);
 
     try {
+      // Envoie la requête textuelle au serveur pour analyse par l'IA (Gemini)
       const res = await fetch('/api/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -60,11 +70,12 @@ function SearchContent() {
 
       if (res.ok) {
         const data = await res.json();
+        // L'IA nous renvoie une "intention" structurée (catégorie, urgence, etc.)
         setIntent(data.intent);
         setSelectedCategory(data.intent.category || null);
       }
     } catch {
-      // Fallback: extraction basique par mot-clé si l'API échoue
+      // Solution de secours (Fallback) : extraction basique par mot-clé si l'API échoue
       const lower = searchQuery.toLowerCase();
       const matchedCat = CATEGORIES.find(
         (c) => lower.includes(c.label.toLowerCase()) || lower.includes(c.id)

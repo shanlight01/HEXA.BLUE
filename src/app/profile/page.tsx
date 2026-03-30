@@ -247,7 +247,7 @@ export default function ProfilePage() {
               <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
                 <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Contacted</div>
                 <div className="text-sm text-gray-700 font-medium">Koffi Eau Pro</div>
-                <div className="text-xs text-green-600 font-medium mt-1">Via WhatsApp</div>
+                <div className="text-xs text-indigo-600 font-medium mt-1">Direct Contact</div>
               </div>
             </div>
           </div>

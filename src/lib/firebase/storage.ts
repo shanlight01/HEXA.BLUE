@@ -1,8 +1,7 @@
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { getFirebaseStorage } from './config';
+import { storage } from './config';
 
 export async function uploadAvatar(uid: string, file: File): Promise<string> {
-  const storage = getFirebaseStorage();
   if (!storage) throw new Error('Firebase Storage is not configured.');
   
   const fileRef = ref(storage, `avatars/${uid}`);
@@ -11,7 +10,6 @@ export async function uploadAvatar(uid: string, file: File): Promise<string> {
 }
 
 export async function uploadCredential(uid: string, file: File, filename: string): Promise<string> {
-  const storage = getFirebaseStorage();
   if (!storage) throw new Error('Firebase Storage is not configured.');
   
   const fileRef = ref(storage, `credentials/${uid}/${filename}`);

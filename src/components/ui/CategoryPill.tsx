@@ -49,10 +49,10 @@ export default function CategoryPill({ category, isActive, onClick }: CategoryPi
     <button
       id={`category-${category.id}`}
       onClick={() => onClick?.(category.id)}
-      className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-semibold border transition-all duration-200 whitespace-nowrap select-none ${
+      className={`inline-flex items-center justify-center gap-2 px-[18px] py-[8px] rounded-full text-[14px] font-medium transition-all duration-200 whitespace-nowrap select-none shadow-sm ${
         isActive
-          ? 'text-white shadow-md scale-105'
-          : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:scale-105 hover:shadow-sm'
+          ? 'text-white'
+          : 'bg-white text-[#4a5568] border border-[#e2e8f0] hover:bg-[#f7fafc] hover:border-[#cbd5e0] hover:-translate-y-[1px]'
       }`}
       style={
         isActive

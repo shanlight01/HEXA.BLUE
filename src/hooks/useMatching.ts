@@ -25,7 +25,7 @@ function getDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number): 
   return R * c;
 }
 
-// Distance maximale acceptable en km pour Lomé (environ 25km couvre presque tout le Grand Lomé)
+// Distance maximale acceptable en km pour la recherche initiale (couvre la majorité d'une grande ville)
 const MAX_CITY_DISTANCE_KM = 25;
 
 /**

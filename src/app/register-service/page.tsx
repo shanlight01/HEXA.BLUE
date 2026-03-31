@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { activateProviderProfile } from '@/lib/firebase/firestore';
+import { auth, db } from '@/lib/firebase/config';
+import { doc, setDoc } from 'firebase/firestore';
 import { CATEGORIES, LOME_NEIGHBORHOODS, type ServiceCategory, type ServiceProfile } from '@/types';
 import { CheckCircle2, MapPin, Phone, Briefcase, ChevronRight, ChevronLeft, Loader2, Info, DollarSign, User as UserIcon } from 'lucide-react';
 
@@ -57,10 +59,38 @@ export default function RegisterServicePage() {
    */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    console.log("👉 Bouton Activer cliqué !");
+
+    // Vérification rigoureuse de l'utilisateur actif via Firebase Auth
+    if (!auth?.currentUser) {
+      console.warn("⚠️ Utilisateur non authentifié via auth.currentUser !");
+      alert("Votre session a expiré ou vous n'êtes pas connecté. Redirection...");
+      router.push('/login?redirect=/register-service');
+      return;
+    }
+    const currentUid = auth.currentUser.uid;
+
     setLoading(true);
+    console.log(`✔️ Authentification OK pour l'UID: ${currentUid}`);
+
     try {
-      // Prépare l'objet profil conforme au type ServiceProfile
+      // 1. Sauvegarde dans 'providers/{userId}' comme demandé
+      console.log("📝 Début de l'écriture Firestore dans providers/...");
+      await setDoc(doc(db, 'providers', currentUid), {
+        category,
+        skills,
+        location,
+        phone,
+        priceRange,
+        bio,
+        plan: "standard",
+        active: true,
+        createdAt: new Date().toISOString()
+      }, { merge: true });
+      console.log("✅ Écriture dans providers/ réussie !");
+
+      // 2. Mise à jour de la collection 'users' existante (rétrocompatibilité pour garantir l'affichage)
+      console.log("📝 Mise à jour de users/ pour isProvider=true...");
       const profile: ServiceProfile = {
         category: category as ServiceCategory,
         skills,
@@ -68,22 +98,28 @@ export default function RegisterServicePage() {
         phone,
         priceRange,
         bio,
-        rating: 5.0,        // Note initiale par défaut
-        isAvailable: true,   // Disponible par défaut après inscription
+        rating: 5.0,
+        isAvailable: true,
         completedJobs: 0
       };
       
-      // Appelle la fonction Firestore pour enregistrer le profil
-      await activateProviderProfile(user.uid, profile);
+      // On utilise setDoc au lieu de updateDoc (dans activateProviderProfile) pour éviter une erreur silencieuse si le doc user n'existait pas encore
+      await setDoc(doc(db, 'users', currentUid), {
+        isProvider: true,
+        serviceProfile: profile
+      }, { merge: true });
+      console.log("✅ Écriture dans users/ réussie !");
       
       setSuccess(true);
-      // Redirection après 2 secondes
+      console.log("✅ Inscription terminée avec succès !");
+
+      // Redirection après 2 secondes vers le profil
       setTimeout(() => {
-        router.push('/');
+        router.push('/profile');
       }, 2000);
-    } catch (err) {
-      console.error(err);
-      alert("Une erreur est survenue lors de l'enregistrement. Veuillez réessayer.");
+    } catch (err: any) {
+      console.error("❌ ERREUR LORS DE L'ÉCRITURE FIRESTORE:", err);
+      alert(`Une erreur est survenue lors de l'enregistrement : ${err.message || 'Erreur inconnue'}`);
     } finally {
       setLoading(false);
     }
@@ -104,11 +140,11 @@ export default function RegisterServicePage() {
           <div className="w-20 h-20 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle2 className="w-12 h-12" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Inscription réussie !</h2>
-          <p className="text-gray-500 mb-6">Votre profil est maintenant actif et visible par les clients à Lomé.</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Votre profil prestataire est activé !</h2>
+          <p className="text-gray-500 mb-6">Votre profil est maintenant actif et visible par les clients dans votre région.</p>
           <div className="flex items-center justify-center gap-2 text-primary font-bold">
             <Loader2 className="w-4 h-4 animate-spin" />
-            Redirection vers l'accueil...
+            Redirection vers votre profil...
           </div>
         </div>
       </div>
@@ -247,23 +283,34 @@ export default function RegisterServicePage() {
                   <DollarSign className="w-4 h-4 text-primary" />
                   Positionnement tarifaire
                 </label>
-                <div className="grid grid-cols-3 gap-3">
-                  {(['low', 'medium', 'high'] as const).map((p) => (
-                    <button
-                      key={p}
-                      type="button"
-                      onClick={() => setPriceRange(p)}
-                      className={`py-3 rounded-xl text-xs font-bold transition-all border-2 ${
-                        priceRange === p 
-                          ? 'bg-primary/5 border-primary text-primary' 
-                          : 'bg-white border-gray-100 text-gray-400 hover:border-gray-200'
-                      }`}
-                    >
-                      {p === 'low' && 'Économique'}
-                      {p === 'medium' && 'Standard'}
-                      {p === 'high' && 'Premium'}
-                    </button>
-                  ))}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
+                  {(['low', 'medium', 'high'] as const).map((p) => {
+                    const isDisabled = p === 'low' || p === 'high';
+                    return (
+                      <button
+                        key={p}
+                        type="button"
+                        disabled={isDisabled}
+                        onClick={() => !isDisabled && setPriceRange(p)}
+                        className={`relative py-4 rounded-xl flex flex-col items-center justify-center text-xs font-bold transition-all border-2 ${
+                          priceRange === p 
+                            ? 'bg-primary/5 border-primary text-primary' 
+                            : isDisabled
+                            ? 'bg-gray-50 border-gray-100 text-gray-400 opacity-60 cursor-not-allowed'
+                            : 'bg-white border-gray-100 text-gray-400 hover:border-gray-200'
+                        }`}
+                      >
+                        {p === 'low' && 'Économique'}
+                        {p === 'medium' && 'Standard'}
+                        {p === 'high' && 'Premium'}
+                        {isDisabled && (
+                          <span className="absolute -top-2.5 px-2 py-0.5 bg-gray-200 text-gray-500 rounded-md text-[9px] uppercase tracking-wider font-bold shadow-sm">
+                            Bientôt
+                          </span>
+                        )}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
             </div>

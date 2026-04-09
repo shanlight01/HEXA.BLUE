@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
-import { signOut } from '@/lib/firebase/auth';
+import { supabase } from '@/lib/supabase/client';
 import { Loader2, LogOut, User as UserIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -12,7 +12,7 @@ export default function Header() {
 
   const handleLogout = async () => {
     try {
-      await signOut();
+      await supabase.auth.signOut();
       router.push('/');
     } catch (error) {
       console.error('Erreur déconnexion:', error);

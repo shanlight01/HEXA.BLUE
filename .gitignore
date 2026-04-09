@@ -28,7 +28,10 @@
 *.pem
 
 # Fichiers de log (journaux d'erreurs générés par npm ou yarn)
-npm-debug.log*
+npm-debug.log*⚠️ Question : Voulez-vous que je supprime EXPLICATIONS_PROJET.md ou préférez-vous le garder/mettre à jour ? Approuvez-vous le plan avant que je commence l'exécution ?
+
+Implementation Plan
+garde , garde et met a jour tout ce qui decoumentation mais optimise pour lr reste 
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*

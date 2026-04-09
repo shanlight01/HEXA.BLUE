@@ -1,18 +1,43 @@
-import { getUserDocument } from '@/lib/firebase/firestore';
 import { notFound } from 'next/navigation';
 import { BadgeCheck, MapPin, Star, Clock, Phone, Briefcase } from 'lucide-react';
 import ContactButton from '@/components/ui/ContactButton';
 import { CATEGORIES } from '@/types';
+import { supabase } from '@/lib/supabase/client';
 
 export default async function ProviderProfilePage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
-  const provider = await getUserDocument(params.id);
+  
+  // Remplacer le stub Firebase par la vraie requête Supabase
+  const { data: provider, error } = await supabase
+    .from('providers')
+    .select(`
+      id, category, skills, location, phone, "priceRange", bio, active, credentials,
+      profiles:id ( name, avatar_url, email )
+    `)
+    .eq('id', params.id)
+    .single();
 
-  if (!provider || !provider.isProvider || !provider.serviceProfile) {
+  if (error || !provider || !provider.active) {
     notFound();
   }
 
-  const profile = provider.serviceProfile;
+  const profileObj = Array.isArray(provider.profiles) ? provider.profiles[0] : provider.profiles;
+  const name = profileObj?.name || 'Prestataire';
+  const avatarUrl = profileObj?.avatar_url;
+
+  // On reconstruit l'objet "profile" attendu par l'interface
+  const profile = {
+    category: provider.category as any,
+    skills: provider.skills || [],
+    location: provider.location,
+    phone: provider.phone,
+    bio: provider.bio,
+    rating: 5.0,
+    completedJobs: 0,
+    isAvailable: provider.active,
+    priceRange: provider.priceRange
+  };
+
   const categoryInfo = CATEGORIES.find(c => c.id === profile.category);
 
   return (
@@ -30,14 +55,18 @@ export default async function ProviderProfilePage(props: { params: Promise<{ id:
 
         {/* Profile Info */}
         <div className="px-8 pb-8 relative">
-          <div className="absolute -top-12 left-8 w-24 h-24 bg-primary/10 text-primary rounded-full border-4 border-white flex items-center justify-center text-4xl font-extrabold uppercase shadow-md">
-            {provider.name.charAt(0)}
+          <div className="absolute -top-12 left-8 w-24 h-24 bg-primary/10 text-primary rounded-full border-4 border-white flex items-center justify-center text-4xl font-extrabold uppercase shadow-md overflow-hidden">
+            {avatarUrl ? (
+                <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+            ) : (
+                name.charAt(0)
+            )}
           </div>
 
           <div className="mt-14 flex flex-col md:flex-row md:items-start justify-between gap-4">
             <div>
               <h1 className="text-3xl font-extrabold text-gray-900 flex items-center gap-2">
-                {provider.name}
+                {name}
                 {profile.rating >= 4.5 && (
                   <span title="Profil Vérifié"><BadgeCheck className="w-6 h-6 text-blue-500" /></span>
                 )}
@@ -59,7 +88,7 @@ export default async function ProviderProfilePage(props: { params: Promise<{ id:
             </div>
 
             <div className="shrink-0">
-               <ContactButton phone={profile.phone} providerName={provider.name} />
+               <ContactButton phone={profile.phone} providerName={name} />
             </div>
           </div>
 

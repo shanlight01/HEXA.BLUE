@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
-import { auth, db } from '@/lib/firebase/config';
+// TODO: Replace with Supabase imports
 import { User, Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+
+import { supabase } from '@/lib/supabase/client';
 
 /**
  * Page d'Inscription Simplifiée
@@ -25,40 +25,45 @@ export default function RegisterPage() {
     setLoading(true);
     setError(null);
 
-    // Vérification de base de la configuration Firebase
-    if (!auth || !db) {
-      setError("Le service d'authentification n'est pas disponible pour le moment.");
-      setLoading(false);
-      return;
-    }
-
     try {
-      // 1. Création du compte dans Firebase Auth
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      // 2. Enregistrement des données complémentaires dans Firestore
-      await setDoc(doc(db, 'users', user.uid), {
-        uid: user.uid,
-        name: name,
-        email: email,
-        isProvider: false, // Par défaut, l'utilisateur n'est pas prestataire
-        createdAt: new Date().toISOString(),
+      // 1. Création du compte dans Supabase Auth
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name,
+          }
+        }
       });
+
+      if (signUpError) throw signUpError;
+
+      // 2. Synchronisation avec la table "profiles" (ou "users")
+      // REMARQUE: La méthode la plus robuste est un "Database Trigger" Supabase.
+      // Mais nous faisons une insertion explicite ici conformément à la demande.
+      if (data.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert([
+            {
+              id: data.user.id,
+              name: name,
+              email: email,
+              isProvider: false,
+              created_at: new Date().toISOString(),
+            }
+          ]);
+        
+        if (profileError) {
+          console.warn("Erreur lors de l'insertion dans 'profiles':", profileError.message);
+        }
+      }
 
       // 3. Redirection vers l'accueil après succès
       router.push('/');
     } catch (err: any) {
-      // Gestion simplifiée des erreurs Firebase
-      if (err.code === 'auth/email-already-in-use') {
-        setError("Cette adresse email est déjà utilisée.");
-      } else if (err.code === 'auth/weak-password') {
-        setError("Le mot de passe doit contenir au moins 6 caractères.");
-      } else if (err.code === 'auth/invalid-email') {
-        setError("L'adresse email n'est pas valide.");
-      } else {
-        setError("Une erreur est survenue lors de l'inscription : " + err.message);
-      }
+      setError(err.message || "Une erreur est survenue lors de l'inscription.");
     } finally {
       setLoading(false);
     }

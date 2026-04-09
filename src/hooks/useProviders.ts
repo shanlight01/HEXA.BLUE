@@ -1,72 +1,112 @@
 /**
  * src/hooks/useProviders.ts
  *
- * Récupère la liste des prestataires actifs depuis Firestore.
- * Gère les erreurs de connectivité (ex: client hors-ligne) avec une logique de réessai.
+ * Récupère la liste des prestataires actifs depuis Supabase.
+ * Données réparties entre les tables `providers` et `profiles`.
  */
 import { useState, useEffect } from 'react';
-import { getAllProviders } from '@/lib/firebase/firestore';
-import type { User } from '@/types';
-
-const MAX_RETRIES = 3;
-const RETRY_DELAY_MS = 1500;
-
-/** Vérifie si l'erreur Firebase est liée à un problème de connexion réseau. */
-function isOfflineError(err: any): boolean {
-  return (
-    err?.code === 'unavailable' ||
-    (typeof err?.message === 'string' &&
-      err.message.toLowerCase().includes('offline'))
-  );
-}
+import type { User, ServiceProfile } from '@/types';
+import { supabase } from '@/lib/supabase/client';
 
 export function useProviders() {
   const [providers, setProviders] = useState<User[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let mounted = true;
+    let isMounted = true;
 
-    async function fetchProviders(attempt = 1) {
+    const fetchProviders = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        if (attempt === 1) setLoading(true);
-        const data = await getAllProviders();
-        if (mounted) {
-          setProviders(data);
-          setError(null);
+        // 1. Count total providers
+        const { count, error: countError } = await supabase
+          .from('providers')
+          .select('*', { count: 'exact', head: true });
+
+        if (countError) {
+          console.error("Erreur count providers:", countError.message);
+          throw countError;
+        }
+        if (isMounted) setTotalCount(count || 0);
+
+        // 2. Fetch active providers (sans name/email/avatar_url — pas dans cette table)
+        const { data: providerRows, error: fetchError } = await supabase
+          .from('providers')
+          .select('id, category, skills, location, phone, "priceRange", bio, active, credentials')
+          .eq('active', true);
+
+        if (fetchError) {
+          console.error("Erreur fetch providers:", fetchError.message);
+          throw fetchError;
+        }
+
+        if (!providerRows || providerRows.length === 0) {
+          if (isMounted) setProviders([]);
+          return;
+        }
+
+        // 3. Fetch corresponding profiles (name, email, avatar_url)
+        const providerIds = providerRows.map((p: any) => p.id);
+        const { data: profileRows, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, name, email, avatar_url')
+          .in('id', providerIds);
+
+        if (profileError) {
+          console.error("Erreur fetch profiles:", profileError.message);
+          // On continue sans les profils plutôt que de crash
+        }
+
+        // 4. Créer un lookup map pour les profils
+        const profileMap = new Map<string, any>();
+        if (profileRows) {
+          profileRows.forEach((p: any) => profileMap.set(p.id, p));
+        }
+
+        // 5. Fusionner providers + profiles
+        if (isMounted) {
+          const mappedUsers: User[] = providerRows.map((item: any) => {
+            const profile = profileMap.get(item.id);
+            return {
+              uid: item.id,
+              name: profile?.name || 'Artisan Anonyme',
+              email: profile?.email || '',
+              avatarUrl: profile?.avatar_url,
+              isProvider: true,
+              providerCredentials: item.credentials,
+              serviceProfile: {
+                category: item.category as any,
+                skills: item.skills || [],
+                location: item.location,
+                phone: item.phone,
+                priceRange: item.priceRange,
+                bio: item.bio,
+                rating: 5.0,
+                isAvailable: item.active,
+                completedJobs: 0,
+              } as ServiceProfile,
+            };
+          });
+          setProviders(mappedUsers);
         }
       } catch (err: any) {
-        console.warn(`Tentative ${attempt}/${MAX_RETRIES} — Erreur Firestore :`, err?.message);
-
-        if (mounted && isOfflineError(err) && attempt < MAX_RETRIES) {
-          // Réessai après un délai croissant
-          setTimeout(() => {
-            if (mounted) fetchProviders(attempt + 1);
-          }, RETRY_DELAY_MS * attempt);
-          return; // Ne pas mettre loading à false pendant les réessais
-        }
-
-        if (mounted) {
-          // Après tous les essais, afficher un message clair
-          setError(
-            isOfflineError(err)
-              ? 'Connexion au serveur impossible. Vérifiez votre connexion internet.'
-              : err.message || 'Impossible de charger les prestataires.'
-          );
-        }
+        console.error("Erreur hook useProviders:", err?.message || JSON.stringify(err));
+        if (isMounted) setError("Impossible de charger les prestataires.");
       } finally {
-        // On ne termine le chargement que si ce n'est pas un réessai en cours
-        if (mounted) setLoading(false);
+        if (isMounted) setLoading(false);
       }
-    }
+    };
 
     fetchProviders();
 
     return () => {
-      mounted = false;
+      isMounted = false;
     };
   }, []);
 
-  return { providers, loading, error };
+  return { providers, totalCount, loading, error };
 }
+

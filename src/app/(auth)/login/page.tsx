@@ -3,9 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { signIn, signInWithGoogle } from '@/lib/firebase/auth';
 import { Mail, Lock, Loader2, ArrowRight } from 'lucide-react';
-import { createUserDocument, getUserDocument } from '@/lib/firebase/firestore';
+import { supabase } from '@/lib/supabase/client';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,14 +20,15 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await signIn(email, password);
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (signInError) throw signInError;
+      
       router.push('/profile');
     } catch (err: any) {
-      if (err.code === 'auth/configuration-not-found') {
-        setError("L'authentification par e-mail n'est pas activée. Veuillez l'activer dans la console Firebase (Authentification > Sign-in method).");
-      } else {
-        setError('Email ou mot de passe invalide. Veuillez réessayer.');
-      }
+      setError(err.message || 'Email ou mot de passe invalide. Veuillez réessayer.');
     } finally {
       setLoading(false);
     }
@@ -38,22 +38,16 @@ export default function LoginPage() {
     setError('');
     setGoogleLoading(true);
     try {
-      const user = await signInWithGoogle();
-      // Ensure the user has a Firestore document (useful if they sign in for the first time via Google)
-      const existingDoc = await getUserDocument(user.uid);
-      if (!existingDoc) {
-        await createUserDocument(user.uid, {
-          name: user.displayName || 'Google User',
-          email: user.email || '',
-          isProvider: false,
-          createdAt: new Date().toISOString(),
-        });
-      }
-      router.push('/profile');
+      const { error: googleError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/profile`
+        }
+      });
+      if (googleError) throw googleError;
+      // Note: Le routage est géré par redirect URL. La synchro du profil lors de create-user doit idéalement être gérée par un Trigger Supabase.
     } catch (err: any) {
-      if (err.code !== 'auth/popup-closed-by-user') {
-        setError('Google sign-in failed. Please try again.');
-      }
+      setError(err.message || 'Google sign-in failed. Please try again.');
     } finally {
       setGoogleLoading(false);
     }

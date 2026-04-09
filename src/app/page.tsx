@@ -32,7 +32,7 @@ export default function HomePage() {
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
 
   const { coordinates, locationName, permissionState, loading: geoLoading, error: geoError, requestLocation } = useGeolocation();
-  const { providers, loading: providersLoading, error: providersError } = useProviders();
+  const { providers, totalCount, loading: providersLoading, error: providersError } = useProviders();
 
   const featuredResults = useMatching(
     providers,
@@ -53,7 +53,7 @@ export default function HomePage() {
   // Filter providers to the selected country bounds
   const boundedResults = featuredResults.filter(result => {
     const coords = result.provider.serviceProfile?.coordinates;
-    if (!coords) return false;
+    if (!coords) return true; // Si pas de GPS, on accepte pour le moment ou filter sur le nom ? (Keep all for now if no GPS)
     
     // Bounds: [[southWestLat, southWestLng], [northEastLat, northEastLng]]
     const [[minLat, minLng], [maxLat, maxLng]] = selectedCountry.bounds;
@@ -234,13 +234,15 @@ export default function HomePage() {
             <p className="text-gray-400 text-center max-w-sm mb-8 text-sm">
               Il n&apos;y a actuellement aucun professionnel inscrit dans cette catégorie pour la zone {selectedCountry.name}.
             </p>
-            <button
-              onClick={() => router.push('/register-service')}
-              className="text-white px-8 py-3 rounded-2xl font-bold shadow-lg transition-all hover:scale-105"
-              style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', boxShadow: '0 8px 20px rgba(99,102,241,0.3)' }}
-            >
-              Soyez le premier à vous inscrire !
-            </button>
+            {totalCount < 15 && (
+              <button
+                onClick={() => router.push('/register-service')}
+                className="text-white px-8 py-3 rounded-2xl font-bold shadow-lg transition-all hover:scale-105"
+                style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', boxShadow: '0 8px 20px rgba(99,102,241,0.3)' }}
+              >
+                Soyez parmi les premiers à vous inscrire !
+              </button>
+            )}
           </div>
         )}
       </main>

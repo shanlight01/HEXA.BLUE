@@ -9,6 +9,12 @@ const nextConfig: NextConfig = {
     // Utile pour la rapidité du déploiement.
     ignoreDuringBuilds: true,
   },
+  images: {
+    remotePatterns: [
+      { protocol: 'https', hostname: 'aipekkhmzurxpvbpliwq.supabase.co' },
+      { protocol: 'https', hostname: 'lh3.googleusercontent.com' }
+    ],
+  },
 };
 
 export default nextConfig;
